@@ -28,7 +28,7 @@ jobs:
           pip install -r requirements.txt
 
       - name: 🧪 Ejecutar pruebas con pytest
-        run: pytest tests/
+        run: pytest ./watchers/test/
 
   lint:
     name: 🎨 Verificar Calidad del Código
