@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """
 malla_watcher.py
 
@@ -12,33 +11,31 @@ los módulos que modelan la transmisión de la señal en el sistema:
 La malla se utiliza para representar el flujo de "energía" del código.
 """
 
+import random
+import time
+import threading
+from flask import Flask, jsonify
 from enum import Enum
 
-# Enumerado para definir tipos de onda (si se desea extender)
+# -----------------------------------------------------------
+# Enumerado para definir tipos de onda
+# -----------------------------------------------------------
 class TipoOnda(Enum):
     FOTON_A = 1
     FOTON_B = 2
 
+# -----------------------------------------------------------
+# Clase Cell
+# -----------------------------------------------------------
 class Cell:
     def __init__(self, x, y, amplitude=0.0, phase=0.0, q=0.0):
-        """
-        Representa una celda de la malla con coordenadas (x, y).
-        - amplitude: Nivel de energía o "problema" en la celda.
-        - phase: Fase de la señal (opcional).
-        - q: Valor del campo escalar asociado a la celda.
-        """
         self.x = x
         self.y = y
         self.amplitude = amplitude
         self.phase = phase
         self.q = q
 
-    def __repr__(self):
-        return (f"Cell({self.x}, {self.y}, amplitude={self.amplitude:.2f}, "
-                f"phase={self.phase:.2f}, q={self.q:.2f})")
-    
     def to_dict(self):
-        """Devuelve un diccionario con la representación de la celda."""
         return {
             "x": self.x,
             "y": self.y,
@@ -46,148 +43,97 @@ class Cell:
             "phase": self.phase,
             "q": self.q
         }
+    
+    def __repr__(self):
+        return (f"Cell({self.x}, {self.y}, amplitude={self.amplitude:.2f}, "
+                f"phase={self.phase:.2f}, q={self.q:.2f})")
 
+# -----------------------------------------------------------
+# Clases PhosWave y Electron
+# -----------------------------------------------------------
 class PhosWave:
-    def __init__(self, coef_transmision=0.5, coef_reflexion=0.5, 
-                 tipo_onda=TipoOnda.FOTON_A, lambda_foton=None):
-        """
-        Inicializa el resonador "PhosWave" con:
-          - coef_transmision (T): Fracción de la señal transmitida.
-          - coef_reflexion (R): Fracción de la señal retenida/reflejada.
-          - tipo_onda: Tipo de onda (por ejemplo, un enumerado).
-          - lambda_foton: Longitud de onda del fotón (en nm) que afecta la transmisión.
-        Se asume que coef_transmision + coef_reflexion == 1.
-        """
-        if abs(coef_transmision + coef_reflexion - 1.0) > 1e-6:
-            raise ValueError("Los coeficientes deben sumar 1.")
+    def __init__(self, coef_transmision=0.6, coef_reflexion=0.4, lambda_foton=600):
         self.T = coef_transmision
         self.R = coef_reflexion
-        self.tipo_onda = tipo_onda
         self.lambda_foton = lambda_foton
-
-    def ajustar_coeficientes(self, nuevos_T, nuevos_R):
-        """
-        Actualiza los coeficientes y valida que sumen 1.
-        """
-        if abs(nuevos_T + nuevos_R - 1.0) > 1e-6:
-            raise ValueError("Los coeficientes deben sumar 1.")
-        self.T = nuevos_T
-        self.R = nuevos_R
 
     def transmitir(self, celda_A, celda_B):
         """
-        Transfiere la señal desde celda_A a celda_B, modulada por un factor que depende
-        de lambda_foton y del campo escalar Q presente en celda_A.
+        Simula la transmisión de onda entre celdas de la malla
         """
-        factor = 1.0
-        if self.lambda_foton:
-            factor = 500.0 / self.lambda_foton  # Valor de referencia: 500 nm
-        
-        modulador = 1 + celda_A.q  # Se incorpora la influencia del campo escalar Q.
-        
+        factor = 500.0 / self.lambda_foton
+        modulador = 1 + celda_A.q
         transmision = self.T * factor * celda_A.amplitude * modulador
         celda_B.amplitude += transmision
         celda_A.amplitude *= self.R
-        return celda_A, celda_B
 
 class Electron:
     def __init__(self, coef_interaccion=0.3):
-        """
-        Representa el componente estabilizador "Electron".
-        - coef_interaccion: Factor que determina cuánto reduce la amplitud en la celda.
-        """
         self.coef_interaccion = coef_interaccion
 
     def interactuar(self, celda):
         """
-        Aplica la interacción estabilizadora a la celda, reduciendo la amplitud.
+        Simula la interacción de electrones con la malla
         """
-        correccion = self.coef_interaccion * celda.amplitude
-        celda.amplitude -= correccion
-        return celda
+        celda.amplitude -= self.coef_interaccion * celda.amplitude
 
-def aplicar_resonador_a_mallas(resonador, malla_A, malla_B):
+# -----------------------------------------------------------
+# Inicialización de mallas
+# -----------------------------------------------------------
+filas, columnas = 5, 5
+malla_A = [[Cell(x, y, amplitude=1.0, q=0.1 * (x + y)) for x in range(columnas)] for y in range(filas)]
+malla_B = [[Cell(x, y) for x in range(columnas)] for y in range(filas)]
+
+resonador = PhosWave()
+electron = Electron()
+
+# -----------------------------------------------------------
+# Funciones de actualización de la malla
+# -----------------------------------------------------------
+def actualizar_malla():
     """
-    Recorre las celdas de ambas mallas y aplica la transmisión del resonador PhosWave
-    a cada par de celdas correspondientes.
-    Se asume que malla_A y malla_B tienen la misma dimensión.
+    Aplica la transmisión de onda y la interacción electrónica en la malla
     """
     for i in range(len(malla_A)):
         for j in range(len(malla_A[i])):
             resonador.transmitir(malla_A[i][j], malla_B[i][j])
+            electron.interactuar(malla_B[i][j])
 
-def aplicar_electron_a_malla(electron, malla):
+def ciclo_actualizacion():
     """
-    Recorre la malla y aplica la interacción estabilizadora del Electron a cada celda.
+    Inicia la actualización periódica de la malla.
     """
-    for fila in malla:
-        for celda in fila:
-            electron.interactuar(celda)
+    while True:
+        actualizar_malla()
+        time.sleep(5)
 
-# Ejemplo de uso:
-if __name__ == "__main__":
-    filas, columnas = 3, 3
+# Iniciar la actualización en segundo plano
+threading.Thread(target=ciclo_actualizacion, daemon=True).start()
 
-    # Creamos la malla A con una amplitud inicial de 1.0 y un valor Q que depende de la posición
-    malla_A = [
-        [Cell(x, y, amplitude=1.0, phase=0.0, q=0.1 * (x + y)) for x in range(columnas)]
-        for y in range(filas)
-    ]
-
-    # La malla B se inicializa sin energía y sin campo escalar (q=0)
-    malla_B = [
-        [Cell(x, y, amplitude=0.0, phase=0.0, q=0.0) for x in range(columnas)]
-        for y in range(filas)
-    ]
-
-    # Instanciamos el resonador PhosWave con un fotón de 600 nm
-    resonador = PhosWave(coef_transmision=0.6, coef_reflexion=0.4, 
-                         tipo_onda=TipoOnda.FOTON_A, lambda_foton=600)
-
-    # Instanciamos el estabilizador Electron
-    electron = Electron(coef_interaccion=0.3)
-
-    # Aplicamos el resonador a las mallas
-    aplicar_resonador_a_mallas(resonador, malla_A, malla_B)
-    # Aplicamos la interacción del electron a la malla B para estabilizar la energía transmitida
-    aplicar_electron_a_malla(electron, malla_B)
-
-    # Imprimimos el estado final de ambas mallas
-    print("Malla A:")
-    for fila in malla_A:
-        print(fila)
-
-    print("\nMalla B:")
-    for fila in malla_B:
-        print(fila)
-
-from flask import Flask, jsonify
-
+# -----------------------------------------------------------
+# Servidor Flask para exponer los datos de la malla
+# -----------------------------------------------------------
 app = Flask(__name__)
 
 @app.route("/api/malla", methods=["GET"])
 def obtener_malla():
     """
-    Retorna el estado actual de la malla B con la estructura correcta.
+    Retorna el estado actual de la malla en formato JSON
     """
-    response = {
+    return jsonify({
         "status": "success",
         "malla_A": [[celda.to_dict() for celda in fila] for fila in malla_A],
         "malla_B": [[celda.to_dict() for celda in fila] for fila in malla_B],
         "resonador": {
             "tipo_onda": "senoidal",
-            "lambda_foton": 1.55,
-            "T": 300,
-            "R": 0.9
+            "lambda_foton": resonador.lambda_foton,
+            "T": resonador.T,
+            "R": resonador.R
         }
-    }
-    return jsonify(response)
-
-import os
+    })
 
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 5000))  # Usa un puerto dinámico si está definido
     print(f"🚀 Iniciando servidor de Malla Watcher en http://localhost:{port}")
     app.run(host="0.0.0.0", port=port, debug=False)
-
 
