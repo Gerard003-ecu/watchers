@@ -28,6 +28,12 @@ jobs:
           pip install -r requirements.txt
           pip install PyYAML
 
+      - name: 🔎 Verificar ejecución de `malla_watcher.py`
+        run: |
+          python modulo/malla_watcher.py &
+          sleep 10
+          ps aux | grep "malla_watcher"
+
       - name: 🧪 Ejecutar pruebas con pytest
         run: pytest ./test/
 
