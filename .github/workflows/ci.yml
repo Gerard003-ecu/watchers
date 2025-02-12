@@ -48,7 +48,7 @@ jobs:
           pip install flake8 black
 
       - name: 🎨 Verificar con Flake8
-        run: flake8 src/
+        run: flake8 watchers/watchers_wave/
 
       - name: 🎨 Formatear código con Black
         run: black --check src/
