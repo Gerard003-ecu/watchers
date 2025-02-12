@@ -34,3 +34,4 @@ llama.cpp/
 *.dockerignore
 docker-compose.yml
 
+watchers/watchers-env/bin/libggml-cuda.so
