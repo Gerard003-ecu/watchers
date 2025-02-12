@@ -27,7 +27,7 @@ def iniciar_servidor_malla():
     el endpoint /api/malla responda (200 o 404), para luego ejecutar los tests.
     """
     process = subprocess.Popen(["python", "modulo/malla_watcher.py"])  # Ajusta la ruta según tu estructura
-    timeout = 20
+    timeout = 40
     start_time = time.time()
     while True:
         try:
