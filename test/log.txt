@@ -1,0 +1,24 @@
+ * Serving Flask app 'watchers_wave'
+ * Debug mode: off
+2025-02-12 07:36:02,501 [INFO] Iniciando simulación de watchers_wave (RK4).
+2025-02-12 07:36:02,511 [INFO] WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.1.28:5000
+2025-02-12 07:36:02,511 [INFO] Press CTRL+C to quit
+2025-02-12 07:36:02,512 [ERROR] Error al leer el archivo de salida: [Errno 2] No such file or directory: '/home/gerardo/Documentos/proyectos/mi-proyecto/watchers_wave/monitor_text/monitor_test.txt'
+2025-02-12 07:36:02,513 [INFO] 127.0.0.1 - - [12/Feb/2025 07:36:02] "GET /api/malla HTTP/1.1" 500 -
+2025-02-12 07:36:02,514 [ERROR] Error al obtener estado de la malla: 500 Server Error: INTERNAL SERVER ERROR for url: http://localhost:5000/api/malla
+2025-02-12 07:36:12,517 [ERROR] Error al leer el archivo de salida: [Errno 2] No such file or directory: '/home/gerardo/Documentos/proyectos/mi-proyecto/watchers_wave/monitor_text/monitor_test.txt'
+2025-02-12 07:36:12,518 [INFO] 127.0.0.1 - - [12/Feb/2025 07:36:12] "GET /api/malla HTTP/1.1" 500 -
+2025-02-12 07:36:12,520 [ERROR] Error al obtener estado de la malla: 500 Server Error: INTERNAL SERVER ERROR for url: http://localhost:5000/api/malla
+2025-02-12 07:36:22,524 [ERROR] Error al leer el archivo de salida: [Errno 2] No such file or directory: '/home/gerardo/Documentos/proyectos/mi-proyecto/watchers_wave/monitor_text/monitor_test.txt'
+2025-02-12 07:36:22,524 [INFO] 127.0.0.1 - - [12/Feb/2025 07:36:22] "GET /api/malla HTTP/1.1" 500 -
+2025-02-12 07:36:22,525 [ERROR] Error al obtener estado de la malla: 500 Server Error: INTERNAL SERVER ERROR for url: http://localhost:5000/api/malla
+2025-02-12 07:36:32,528 [ERROR] Error al leer el archivo de salida: [Errno 2] No such file or directory: '/home/gerardo/Documentos/proyectos/mi-proyecto/watchers_wave/monitor_text/monitor_test.txt'
+2025-02-12 07:36:32,528 [INFO] 127.0.0.1 - - [12/Feb/2025 07:36:32] "GET /api/malla HTTP/1.1" 500 -
+2025-02-12 07:36:32,529 [ERROR] Error al obtener estado de la malla: 500 Server Error: INTERNAL SERVER ERROR for url: http://localhost:5000/api/malla
+2025-02-12 07:36:42,534 [ERROR] Error al leer el archivo de salida: [Errno 2] No such file or directory: '/home/gerardo/Documentos/proyectos/mi-proyecto/watchers_wave/monitor_text/monitor_test.txt'
+2025-02-12 07:36:42,535 [INFO] 127.0.0.1 - - [12/Feb/2025 07:36:42] "GET /api/malla HTTP/1.1" 500 -
+2025-02-12 07:36:42,536 [ERROR] Error al obtener estado de la malla: 500 Server Error: INTERNAL SERVER ERROR for url: http://localhost:5000/api/malla
+2025-02-12 07:36:42,542 [INFO] Simulación completada.

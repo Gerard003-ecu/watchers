@@ -1,0 +1,2 @@
+with open("monitor_test.txt", "a", encoding="utf-8") as f:
+    f.write(f"Cambio en t={t:.2f}, x={x:.2f}, y={y:.2f}\n")

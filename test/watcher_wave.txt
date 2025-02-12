@@ -1,0 +1,256 @@
+#!/usr/bin/env python3
+"""
+watchers_wave: Simulación y orquestación de eventos para la integración con watchers.
+
+Este script realiza:
+  - La simulación del oscilador 2D mediante RK4, generando eventos cuando la amplitud supera un umbral.
+  - El análisis periódico de un log de errores para ajustar parámetros (guardados en un archivo JSON).
+  - La exposición de una API con Flask para recibir notificaciones y para que watchers consulte la configuración actual,
+    incluyendo información del hardware.
+  - La consulta periódica del endpoint REST que expone el estado de la malla (dummy para pruebas),
+    para ajustar parámetros y activar acciones correctivas si es necesario.
+"""
+
+import json
+import math
+import logging
+import time
+import threading
+import os
+from flask import Flask, request, jsonify
+import psutil
+import requests
+
+# Configuración de logging
+logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
+
+# --- DIRECTORIOS Y RUTAS ---
+# Directorio de salida para los eventos
+OUTPUT_DIR = "/home/gerardo/Documentos/Proyectos/watchers_wave/monitor_text"
+os.makedirs(OUTPUT_DIR, exist_ok=True)
+OUTPUT_FILE = os.path.join(OUTPUT_DIR, "monitor_test.txt")
+
+# Directorio y ruta para el log de errores
+ERROR_LOG_DIR = "/home/gerardo/Documentos/Proyectos/watchers/watchers"
+os.makedirs(ERROR_LOG_DIR, exist_ok=True)
+ERROR_LOG = os.path.join(ERROR_LOG_DIR, "error.log")
+# Si no existe, creamos un archivo vacío
+if not os.path.exists(ERROR_LOG):
+    with open(ERROR_LOG, "w", encoding="utf-8") as f:
+        f.write("")
+
+# Archivo de configuración automática
+AUTO_CONFIG = os.path.join(OUTPUT_DIR, "auto_config.json")
+
+# --- SIMULACIÓN DEL OSCILADOR 2D (RK4) ---
+def derivatives(t, x, y, vx, vy, omega, c):
+    dxdt = vx
+    dydt = vy
+    dvxdt = -omega**2 * x - c * vx
+    dvydt = -omega**2 * y - c * vy
+    return dxdt, dydt, dvxdt, dvydt
+
+def rk4_step(t, x, y, vx, vy, dt, omega, c):
+    dx1, dy1, dvx1, dvy1 = derivatives(t, x, y, vx, vy, omega, c)
+    x2 = x + dx1 * dt/2
+    y2 = y + dy1 * dt/2
+    vx2 = vx + dvx1 * dt/2
+    vy2 = vy + dvy1 * dt/2
+    dx2, dy2, dvx2, dvy2 = derivatives(t + dt/2, x2, y2, vx2, vy2, omega, c)
+    x3 = x + dx2 * dt/2
+    y3 = y + dy2 * dt/2
+    vx3 = vx + dvx2 * dt/2
+    vy3 = vy + dvy2 * dt/2
+    dx3, dy3, dvx3, dvy3 = derivatives(t + dt/2, x3, y3, vx3, vy3, omega, c)
+    x4 = x + dx3 * dt
+    y4 = y + dy3 * dt
+    vx4 = vx + dvx3 * dt
+    vy4 = vy + dvy3 * dt
+    dx4, dy4, dvx4, dvy4 = derivatives(t + dt, x4, y4, vx4, vy4, omega, c)
+    x_new = x + (dt/6) * (dx1 + 2*dx2 + 2*dx3 + dx4)
+    y_new = y + (dt/6) * (dy1 + 2*dy2 + 2*dy3 + dy4)
+    vx_new = vx + (dt/6) * (dvx1 + 2*dvx2 + 2*dvx3 + dvx4)
+    vy_new = vy + (dt/6) * (dvy1 + 2*dvy2 + 2*dvy3 + dvy4)
+    return x_new, y_new, vx_new, vy_new
+
+def run_simulation():
+    logging.info("Iniciando simulación de watchers_wave (RK4).")
+    omega = 2.0
+    c = 0.2
+    x0, y0 = 1.0, 0.0
+    vx0, vy0 = 0.0, 1.0
+    dt = 0.05
+    total_time = 10.0
+    steps = int(total_time / dt)
+    x, y = x0, y0
+    vx, vy = vx0, vy0
+    t = 0.0
+    amplitude_threshold = 1.5
+    for step in range(steps):
+        amplitude = math.sqrt(x**2 + y**2)
+        if amplitude >= amplitude_threshold:
+            with open(OUTPUT_FILE, "a", encoding="utf-8") as f:
+                f.write(f"[WaveEvent] step={step}, t={t:.2f}, amplitude={amplitude:.3f}\n")
+            logging.info(f"Evento: step={step}, t={t:.2f}s, amplitude={amplitude:.3f}")
+        x, y, vx, vy = rk4_step(t, x, y, vx, vy, dt, omega, c)
+        t += dt
+        time.sleep(0.2)
+    logging.info("Simulación completada.")
+
+# --- ANÁLISIS DE ERRORES Y AJUSTE DE PARÁMETROS ---
+def adjust_watchers_parameters(error_count):
+    ngl = max(1, 50 - error_count)
+    context_size = max(512, 2048 - (error_count * 50))
+    new_config = {"ngl": ngl, "context_size": context_size, "retries": 3 + (error_count // 2)}
+    try:
+        with open(AUTO_CONFIG, "w", encoding="utf-8") as f:
+            json.dump(new_config, f, indent=4)
+        logging.info(f"Nuevo ajuste de parámetros: {new_config}")
+    except Exception as e:
+        logging.error(f"Error al guardar configuración: {e}")
+
+def analyze_errors():
+    error_count = 0
+    try:
+        with open(ERROR_LOG, "r", encoding="utf-8") as f:
+            lines = f.readlines()
+            for line in lines[-20:]:
+                if "error" in line.lower():
+                    error_count += 1
+    except Exception as e:
+        logging.error(f"Error al leer log de errores: {e}")
+    if error_count > 5:
+        logging.warning(f"Detectados {error_count} errores. Ajustando parámetros...")
+        adjust_watchers_parameters(error_count)
+
+def error_analysis_scheduler(interval=60):
+    while True:
+        analyze_errors()
+        time.sleep(interval)
+
+def get_hardware_info():
+    try:
+        cpu_info = {
+            "cpu_count_physical": psutil.cpu_count(logical=False),
+            "cpu_count_logical": psutil.cpu_count(logical=True),
+            "cpu_freq": psutil.cpu_freq()._asdict() if psutil.cpu_freq() else {}
+        }
+        mem = psutil.virtual_memory()
+        return {"cpu": cpu_info, "memory": mem._asdict()}
+    except Exception as e:
+        logging.error(f"Error obteniendo info de hardware: {e}")
+        return {}
+
+# --- ENDPOINTS FLASK ---
+app = Flask(__name__)
+
+# Se agregan dos rutas para cada endpoint para cubrir posibles barras finales
+
+@app.route('/api/event', methods=['POST'])
+@app.route('/api/event/', methods=['POST'])
+def receive_event():
+    data = request.get_json()
+    if not data:
+        logging.error("No se recibieron datos JSON en /api/event.")
+        return jsonify({"status": "error", "message": "No se recibieron datos JSON"}), 400
+    event_id = data.get("event_id", "N/A")
+    file_path = data.get("file_path", "N/A")
+    logging.info(f"Recibido evento {event_id} para el archivo: {file_path}")
+    return jsonify({"status": "success", "message": f"Evento {event_id} procesado"}), 200
+
+@app.route('/api/error', methods=['POST'])
+@app.route('/api/error/', methods=['POST'])
+def receive_error():
+    data = request.get_json()
+    if not data:
+        logging.error("No se recibieron datos JSON en /api/error.")
+        return jsonify({"status": "error", "message": "No se recibieron datos JSON"}), 400
+    error_id = data.get("error_id", "N/A")
+    description = data.get("description", "Sin descripción")
+    logging.info(f"Reporte de error recibido: ID {error_id}, descripción: {description}")
+    return jsonify({"status": "success", "message": f"Reporte de error {error_id} procesado"}), 200
+
+@app.route('/api/config', methods=['GET'])
+def get_config():
+    config_dir = os.path.dirname(AUTO_CONFIG)
+    os.makedirs(config_dir, exist_ok=True)
+    try:
+        with open(AUTO_CONFIG, "r", encoding="utf-8") as f:
+            config_data = json.load(f)
+    except FileNotFoundError:
+        config_data = {}
+        with open(AUTO_CONFIG, "w", encoding="utf-8") as f:
+            json.dump(config_data, f, indent=4)
+        logging.info(f"Archivo de configuración creado en {AUTO_CONFIG}.")
+    except Exception as e:
+        logging.error(f"Error al leer configuración: {e}")
+        config_data = {}
+    hw_info = get_hardware_info()
+    config_data["hardware"] = hw_info
+    return jsonify({"status": "success", "config": config_data}), 200
+
+# Endpoint dummy para /api/malla
+@app.route('/api/malla', methods=['GET'])
+def get_malla_state():
+    dummy_state = {
+        "status": "success",
+        "malla_A": [[{"x": 0, "y": 0, "amplitude": 1.0, "phase": 0.0}]],
+        "malla_B": [[{"x": 0, "y": 0, "amplitude": 0.5, "phase": 0.0}]],
+        "resonador": {"tipo_onda": "FOTON_A", "lambda_foton": 600, "T": 0.6, "R": 0.4}
+    }
+    return jsonify(dummy_state), 200
+
+def run_flask():
+    app.run(host='0.0.0.0', port=5000)
+
+# --- CONSULTA PERIÓDICA AL ENDPOINT REST DE LA MALLA ---
+MALLA_ENDPOINT_URL = "http://localhost:5000/api/malla"
+
+def obtener_estado_malla(timeout=5):
+    try:
+        response = requests.get(MALLA_ENDPOINT_URL, timeout=timeout)
+        response.raise_for_status()
+        return response.json()
+    except Exception as e:
+        logging.error(f"Error al obtener estado de la malla: {e}")
+        return None
+
+def actualizar_estado_watchers_wave():
+    estado = obtener_estado_malla()
+    if estado:
+        logging.info("Estado de la malla obtenido:\n" + json.dumps(estado, indent=4))
+        amplitudes = [celda.get("amplitude", 0) for fila in estado.get("malla_A", []) for celda in fila]
+        if amplitudes:
+            promedio = sum(amplitudes) / len(amplitudes)
+            logging.info(f"Amplitud promedio de malla_A: {promedio:.3f}")
+            if promedio > 1.5:
+                logging.warning("La amplitud promedio supera el umbral. Activando acción correctiva...")
+                # Aquí se podrían ajustar parámetros o enviar notificaciones.
+    else:
+        logging.warning("No se pudo obtener el estado de la malla.")
+
+def ciclo_estado_malla(intervalo=10):
+    while True:
+        actualizar_estado_watchers_wave()
+        time.sleep(intervalo)
+
+# --- PROGRAMA PRINCIPAL ---
+if __name__ == "__main__":
+    # Inicia el servidor Flask en un hilo separado
+    flask_thread = threading.Thread(target=run_flask)
+    flask_thread.daemon = True
+    flask_thread.start()
+
+    # Inicia el scheduler de análisis de errores en un hilo separado
+    scheduler_thread = threading.Thread(target=error_analysis_scheduler, args=(60,))
+    scheduler_thread.daemon = True
+    scheduler_thread.start()
+
+    # Inicia el ciclo de consulta del estado de la malla
+    estado_thread = threading.Thread(target=ciclo_estado_malla, args=(10,))
+    estado_thread.daemon = True
+    estado_thread.start()
+
+    # Ejecuta la simulación del oscilador 2D
+    run_simulation()
+
