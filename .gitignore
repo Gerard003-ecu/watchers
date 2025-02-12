@@ -35,3 +35,5 @@ llama.cpp/
 docker-compose.yml
 
 watchers/watchers-env/bin/libggml-cuda.so
+ECU
+ECU.pub
