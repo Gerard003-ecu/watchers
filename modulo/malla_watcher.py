@@ -168,11 +168,26 @@ app = Flask(__name__)
 @app.route("/api/malla", methods=["GET"])
 def obtener_malla():
     """
-    Retorna el estado actual de la malla B como JSON.
+    Retorna el estado actual de la malla B con la estructura correcta.
     """
-    return jsonify([[celda.to_dict() for celda in fila] for fila in malla_B])
+    response = {
+        "status": "success",
+        "malla_A": [[celda.to_dict() for celda in fila] for fila in malla_A],
+        "malla_B": [[celda.to_dict() for celda in fila] for fila in malla_B],
+        "resonador": {
+            "tipo_onda": "senoidal",
+            "lambda_foton": 1.55,
+            "T": 300,
+            "R": 0.9
+        }
+    }
+    return jsonify(response)
+
+import os
 
 if __name__ == "__main__":
-    print("🚀 Iniciando servidor de Malla Watcher en http://localhost:5000")
-    app.run(host="0.0.0.0", port=5000, debug=False)
+    port = int(os.getenv("PORT", 5000))  # Usa un puerto dinámico si está definido
+    print(f"🚀 Iniciando servidor de Malla Watcher en http://localhost:{port}")
+    app.run(host="0.0.0.0", port=port, debug=False)
+
 
