@@ -160,3 +160,19 @@ if __name__ == "__main__":
     print("\nMalla B:")
     for fila in malla_B:
         print(fila)
+
+from flask import Flask, jsonify
+
+app = Flask(__name__)
+
+@app.route("/api/malla", methods=["GET"])
+def obtener_malla():
+    """
+    Retorna el estado actual de la malla B como JSON.
+    """
+    return jsonify([[celda.to_dict() for celda in fila] for fila in malla_B])
+
+if __name__ == "__main__":
+    print("🚀 Iniciando servidor de Malla Watcher en http://localhost:5000")
+    app.run(host="0.0.0.0", port=5000, debug=False)
+
