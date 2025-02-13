@@ -58,9 +58,8 @@ def test_phoswave_transmision():
     
     # Instanciamos PhosWave con coeficientes que sumen 1 y una lambda_foton de 600 nm.
     # Nota: Aquí se usa una forma de obtener el atributo "tipo_onda" (puedes ajustarlo según tu implementación).
-    resonador = PhosWave(coef_transmision=0.6, coef_reflexion=0.4, 
-                         tipo_onda=PhosWave.__dict__.get("tipo_onda", None) or "FOTON_A",
-                         lambda_foton=600)
+    resonador = PhosWave(coef_transmision=0.6, coef_reflexion=0.4, lambda_foton=600, tipo_onda="senoidal")
+
     # Realizamos la transmisión
     resonador.transmitir(celda_A, celda_B)
     # Se espera que la celda_B aumente su amplitud y celda_A disminuya

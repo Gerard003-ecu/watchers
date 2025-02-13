@@ -16,6 +16,7 @@ import time
 import threading
 from flask import Flask, jsonify
 from enum import Enum
+import os  # Asegurar que la variable de entorno PORT funciona correctamente
 
 # -----------------------------------------------------------
 # Enumerado para definir tipos de onda
@@ -56,6 +57,7 @@ class PhosWave:
         self.T = coef_transmision
         self.R = coef_reflexion
         self.lambda_foton = lambda_foton
+        self.tipo_onda = tipo_onda  # Simulación del tipo de onda del fotón
 
     def transmitir(self, celda_A, celda_B):
         """
