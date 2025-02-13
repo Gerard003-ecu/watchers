@@ -13,7 +13,7 @@ RateLimitError = openai.RateLimitError
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(message)s",
-    datefmt="%Y-%m-%d %H:%M:%S"
+    datefmt="%Y-%m-%d %H:%M:%S",
 )
 logger = logging.getLogger(__name__)
 
@@ -36,8 +36,9 @@ ERROR_MESSAGES = {
     "rate_limit": "[Cloud Error] Límite de tasa excedido. Por favor, inténtalo de nuevo más tarde.",
     "auth_error": "[Cloud Error] Error de autenticación. Verifica tu clave API.",
     "generic_error": "[Cloud Error] Ocurrió un error al llamar al agente en la nube: {error}",
-    "invalid_code": "El código proporcionado no parece ser válido."
+    "invalid_code": "El código proporcionado no parece ser válido.",
 }
+
 
 def get_suggestions_cloud(code_snippet: str) -> str:
     """
@@ -45,7 +46,11 @@ def get_suggestions_cloud(code_snippet: str) -> str:
     """
     logger.info("Iniciando solicitud a la API de OpenAI...")
 
-    if not code_snippet or not isinstance(code_snippet, str) or not code_snippet.strip():
+    if (
+        not code_snippet
+        or not isinstance(code_snippet, str)
+        or not code_snippet.strip()
+    ):
         logger.warning("Código recibido vacío o no válido.")
         return ERROR_MESSAGES["invalid_code"]
 
@@ -73,6 +78,7 @@ def get_suggestions_cloud(code_snippet: str) -> str:
         logger.exception("Error inesperado")
         return ERROR_MESSAGES["generic_error"].format(error=str(e))
 
+
 def _build_messages(code: str) -> List[Dict[str, str]]:
     """
     Construye los mensajes para la API de OpenAI.
@@ -83,18 +89,16 @@ def _build_messages(code: str) -> List[Dict[str, str]]:
             "content": (
                 "Eres un asistente experto en revisión de código. "
                 "Proporciona sugerencias concisas y útiles para mejorar el código."
-            )
+            ),
         },
-        {
-            "role": "user",
-            "content": f"Revisa este código y sugiere mejoras:\n{code}"
-        }
+        {"role": "user", "content": f"Revisa este código y sugiere mejoras:\n{code}"},
     ]
+
 
 @retry(
     stop=stop_after_attempt(MAX_RETRIES),
     wait=wait_exponential(multiplier=1, min=2, max=10),
-    retry=(Timeout | RateLimitError)
+    retry=(Timeout | RateLimitError),
 )
 def _call_openai_api(messages: List[Dict[str, str]]) -> Dict[str, Any]:
     """
@@ -108,8 +112,9 @@ def _call_openai_api(messages: List[Dict[str, str]]) -> Dict[str, Any]:
         request_timeout=TIMEOUT,
         top_p=0.9,
         frequency_penalty=0.3,
-        presence_penalty=0.3
+        presence_penalty=0.3,
     )
+
 
 def _process_api_response(response: Dict[str, Any]) -> str:
     """

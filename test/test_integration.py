@@ -19,14 +19,17 @@ import json
 # URL del endpoint REST que expone el estado de la malla.
 MALLA_ENDPOINT = "http://localhost:5000/api/malla"
 
+
 # Fixture que inicia el servidor malla_watcher usando polling para confirmar que esté activo.
 @pytest.fixture(scope="session", autouse=True)
 def iniciar_servidor_malla():
     """
-    Arranca el servidor malla_watcher.py en un proceso separado y espera hasta que 
+    Arranca el servidor malla_watcher.py en un proceso separado y espera hasta que
     el endpoint /api/malla responda (200 o 404), para luego ejecutar los tests.
     """
-    process = subprocess.Popen(["python", "modulo/malla_watcher.py"])  # Ajusta la ruta según tu estructura
+    process = subprocess.Popen(
+        ["python", "modulo/malla_watcher.py"]
+    )  # Ajusta la ruta según tu estructura
     timeout = 40
     start_time = time.time()
     while True:
@@ -38,11 +41,14 @@ def iniciar_servidor_malla():
         except Exception:
             pass
         if time.time() - start_time > timeout:
-            raise TimeoutError("El servidor malla_watcher no se inició en el tiempo esperado.")
+            raise TimeoutError(
+                "El servidor malla_watcher no se inició en el tiempo esperado."
+            )
         time.sleep(1)
     yield
     process.terminate()
     process.wait()
+
 
 @pytest.fixture(scope="session")
 def estado_malla():
@@ -51,10 +57,14 @@ def estado_malla():
     response.raise_for_status()
     return response.json()
 
+
 def test_endpoint_status():
     """Verifica que el endpoint /api/malla retorne un código HTTP 200."""
     response = requests.get(MALLA_ENDPOINT, timeout=5)
-    assert response.status_code == 200, f"Esperado status 200, obtenido {response.status_code}"
+    assert (
+        response.status_code == 200
+    ), f"Esperado status 200, obtenido {response.status_code}"
+
 
 def test_estado_malla_structure(estado_malla):
     """
@@ -65,15 +75,17 @@ def test_estado_malla_structure(estado_malla):
     """
     assert "status" in estado_malla, "Falta la clave 'status' en la respuesta"
     assert estado_malla["status"] == "success", "El estado no es 'success'"
-    
+
     for key in ["malla_A", "malla_B", "resonador"]:
         assert key in estado_malla, f"Falta la clave '{key}' en la respuesta"
+
 
 def test_resonador_atributos(estado_malla):
     """Verifica que el bloque 'resonador' contenga los atributos necesarios."""
     resonador = estado_malla["resonador"]
     for attr in ["tipo_onda", "lambda_foton", "T", "R"]:
         assert attr in resonador, f"El resonador no tiene el atributo '{attr}'"
+
 
 def test_malla_celdas(estado_malla):
     """
@@ -82,12 +94,17 @@ def test_malla_celdas(estado_malla):
     """
     for malla_key in ["malla_A", "malla_B"]:
         malla = estado_malla[malla_key]
-        assert isinstance(malla, list) and len(malla) > 0, f"La {malla_key} debe ser una lista no vacía."
+        assert (
+            isinstance(malla, list) and len(malla) > 0
+        ), f"La {malla_key} debe ser una lista no vacía."
         primera_fila = malla[0]
-        assert isinstance(primera_fila, list) and len(primera_fila) > 0, f"La {malla_key} debe tener filas no vacías."
+        assert (
+            isinstance(primera_fila, list) and len(primera_fila) > 0
+        ), f"La {malla_key} debe tener filas no vacías."
         celda = primera_fila[0]
         for prop in ["x", "y", "amplitude", "phase"]:
             assert prop in celda, f"La celda no contiene la propiedad '{prop}'"
+
 
 def test_actualizacion_periodica():
     """
@@ -105,7 +122,10 @@ def test_actualizacion_periodica():
                 break
         if cambio_detectado:
             break
-    assert cambio_detectado, "No se detectó cambio en las amplitudes de malla_A tras el intervalo."
+    assert (
+        cambio_detectado
+    ), "No se detectó cambio en las amplitudes de malla_A tras el intervalo."
+
 
 def test_integrador_estados():
     """
@@ -113,18 +133,29 @@ def test_integrador_estados():
     de watchers_wave y watcher_focus en un diccionario que contenga las claves esperadas.
     """
     from integrador import integrar_estados
+
     estado_global = integrar_estados()
-    
+
     # Comprobar que se tengan ambas claves
-    assert "watchers_wave" in estado_global, "Falta la clave 'watchers_wave' en el estado integrado"
-    assert "watcher_focus" in estado_global, "Falta la clave 'watcher_focus' en el estado integrado"
-    
+    assert (
+        "watchers_wave" in estado_global
+    ), "Falta la clave 'watchers_wave' en el estado integrado"
+    assert (
+        "watcher_focus" in estado_global
+    ), "Falta la clave 'watcher_focus' en el estado integrado"
+
     # Validación adicional para cada bloque
     if estado_global["watchers_wave"]:
-        assert "hardware" in estado_global["watchers_wave"], "El bloque 'watchers_wave' debe contener 'hardware'"
+        assert (
+            "hardware" in estado_global["watchers_wave"]
+        ), "El bloque 'watchers_wave' debe contener 'hardware'"
     if estado_global["watcher_focus"]:
-        assert "focus_state" in estado_global["watcher_focus"], "El bloque 'watcher_focus' debe contener 'focus_state'"
+        assert (
+            "focus_state" in estado_global["watcher_focus"]
+        ), "El bloque 'watcher_focus' debe contener 'focus_state'"
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     import pytest
+
     pytest.main()

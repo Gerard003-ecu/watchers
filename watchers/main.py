@@ -14,7 +14,7 @@ from pathlib import Path
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 import watchers_local  # Módulo para procesamiento local
-import watchers_cloud   # Módulo para procesamiento en la nube
+import watchers_cloud  # Módulo para procesamiento en la nube
 from watchers_comm import load_local_config, run_config_updater, send_event, send_error
 
 # Configuración general: se lee el umbral desde la variable de entorno, con valor por defecto 50
@@ -24,18 +24,25 @@ DEBOUNCE_TIME = 1.0  # Segundos entre procesamientos consecutivos del mismo arch
 # Configurar logging: nivel DEBUG para ver detalles de depuración y mensajes INFO para lo esencial.
 logging.basicConfig(
     level=logging.DEBUG,
-    format='%(asctime)s - [%(levelname)s] %(message)s',
-    datefmt='%Y-%m-%d %H:%M:%S'
+    format="%(asctime)s - [%(levelname)s] %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
 )
+
 
 class ChangeHandler(FileSystemEventHandler):
     """Manejador de eventos con debounce, control de cambios reales y thread safety."""
-    
+
     def __init__(self):
         super().__init__()
-        self.last_processed = {}  # Almacena el último tiempo de procesamiento por archivo
-        self.file_hashes = {}       # Almacena el hash MD5 del contenido previo de cada archivo
-        self.lock = threading.Lock()  # Lock para garantizar acceso thread-safe a los diccionarios
+        self.last_processed = (
+            {}
+        )  # Almacena el último tiempo de procesamiento por archivo
+        self.file_hashes = (
+            {}
+        )  # Almacena el hash MD5 del contenido previo de cada archivo
+        self.lock = (
+            threading.Lock()
+        )  # Lock para garantizar acceso thread-safe a los diccionarios
 
     def on_modified(self, event):
         """Maneja modificaciones de archivos con verificación de cambios reales."""
@@ -53,7 +60,7 @@ class ChangeHandler(FileSystemEventHandler):
 
         # Leer el contenido del archivo (fuera de la sección crítica para evitar bloqueos prolongados)
         try:
-            with open(filepath, 'r', encoding='utf-8') as f:
+            with open(filepath, "r", encoding="utf-8") as f:
                 content = f.read()
         except Exception as e:
             logging.error(f"Error leyendo {filepath}: {e}")
@@ -86,7 +93,7 @@ class ChangeHandler(FileSystemEventHandler):
 
     def _process_file(self, filepath, content):
         """Ejecuta el procesamiento del archivo según su tamaño."""
-        num_lines = content.count('\n') + 1
+        num_lines = content.count("\n") + 1
         logging.info(f"Procesando: {filepath} ({num_lines} líneas)")
 
         if num_lines <= MAX_LINES_LOCAL:
@@ -112,7 +119,7 @@ def main():
         sys.exit(1)
 
     path_to_watch = Path(sys.argv[1])
-    
+
     if not path_to_watch.is_dir():
         logging.error(f"La ruta {path_to_watch} no es un directorio válido")
         sys.exit(1)

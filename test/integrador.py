@@ -17,6 +17,7 @@ import json
 WATCHERS_WAVE_CONFIG_URL = "http://localhost:5000/api/config"
 WATCHER_FOCUS_URL = "http://localhost:6000/api/focus"
 
+
 def obtener_config_watchers_wave(timeout=5):
     """
     Consulta el endpoint de watchers_wave y devuelve la configuración en formato JSON.
@@ -28,6 +29,7 @@ def obtener_config_watchers_wave(timeout=5):
     except Exception as e:
         print(f"Error obteniendo configuración de watchers_wave: {e}")
         return None
+
 
 def obtener_estado_watcher_focus(timeout=5):
     """
@@ -41,22 +43,21 @@ def obtener_estado_watcher_focus(timeout=5):
         print(f"Error obteniendo estado de watcher_focus: {e}")
         return None
 
+
 def integrar_estados():
     """
     Combina la información obtenida de ambos endpoints en un solo diccionario.
     """
     config_wave = obtener_config_watchers_wave()
     estado_focus = obtener_estado_watcher_focus()
-    estado_global = {
-        "watchers_wave": config_wave,
-        "watcher_focus": estado_focus
-    }
+    estado_global = {"watchers_wave": config_wave, "watcher_focus": estado_focus}
     return estado_global
+
 
 def main():
     estado_global = integrar_estados()
     print(json.dumps(estado_global, indent=4))
 
+
 if __name__ == "__main__":
     main()
-

@@ -171,7 +171,11 @@ def _transform_recursive(
         # List[T]
         (is_list_type(stripped_type) and is_list(data))
         # Iterable[T]
-        or (is_iterable_type(stripped_type) and is_iterable(data) and not isinstance(data, str))
+        or (
+            is_iterable_type(stripped_type)
+            and is_iterable(data)
+            and not isinstance(data, str)
+        )
     ):
         # dicts are technically iterable, but it is an iterable on the keys of the dict and is not usually
         # intended as an iterable, so we don't transform it.
@@ -179,7 +183,10 @@ def _transform_recursive(
             return cast(object, data)
 
         inner_type = extract_type_arg(stripped_type, 0)
-        return [_transform_recursive(d, annotation=annotation, inner_type=inner_type) for d in data]
+        return [
+            _transform_recursive(d, annotation=annotation, inner_type=inner_type)
+            for d in data
+        ]
 
     if is_union_type(stripped_type):
         # For union types we run the transformation against all subtypes to ensure that everything is transformed.
@@ -206,7 +213,9 @@ def _transform_recursive(
     return data
 
 
-def _format_data(data: object, format_: PropertyFormat, format_template: str | None) -> object:
+def _format_data(
+    data: object, format_: PropertyFormat, format_template: str | None
+) -> object:
     if isinstance(data, (date, datetime)):
         if format_ == "iso8601":
             return data.isoformat()
@@ -226,7 +235,9 @@ def _format_data(data: object, format_: PropertyFormat, format_template: str | N
                 binary = binary.encode()
 
         if not isinstance(binary, bytes):
-            raise RuntimeError(f"Could not read bytes from {data}; Received {type(binary)}")
+            raise RuntimeError(
+                f"Could not read bytes from {data}; Received {type(binary)}"
+            )
 
         return base64.b64encode(binary).decode("ascii")
 
@@ -245,7 +256,9 @@ def _transform_typeddict(
             # we do not have a type annotation for this field, leave it as is
             result[key] = value
         else:
-            result[_maybe_transform_key(key, type_)] = _transform_recursive(value, annotation=type_)
+            result[_maybe_transform_key(key, type_)] = _transform_recursive(
+                value, annotation=type_
+            )
     return result
 
 
@@ -281,7 +294,9 @@ async def async_transform(
 
     It should be noted that the transformations that this function does are not represented in the type system.
     """
-    transformed = await _async_transform_recursive(data, annotation=cast(type, expected_type))
+    transformed = await _async_transform_recursive(
+        data, annotation=cast(type, expected_type)
+    )
     return cast(_T, transformed)
 
 
@@ -314,7 +329,11 @@ async def _async_transform_recursive(
         # List[T]
         (is_list_type(stripped_type) and is_list(data))
         # Iterable[T]
-        or (is_iterable_type(stripped_type) and is_iterable(data) and not isinstance(data, str))
+        or (
+            is_iterable_type(stripped_type)
+            and is_iterable(data)
+            and not isinstance(data, str)
+        )
     ):
         # dicts are technically iterable, but it is an iterable on the keys of the dict and is not usually
         # intended as an iterable, so we don't transform it.
@@ -322,7 +341,12 @@ async def _async_transform_recursive(
             return cast(object, data)
 
         inner_type = extract_type_arg(stripped_type, 0)
-        return [await _async_transform_recursive(d, annotation=annotation, inner_type=inner_type) for d in data]
+        return [
+            await _async_transform_recursive(
+                d, annotation=annotation, inner_type=inner_type
+            )
+            for d in data
+        ]
 
     if is_union_type(stripped_type):
         # For union types we run the transformation against all subtypes to ensure that everything is transformed.
@@ -330,7 +354,9 @@ async def _async_transform_recursive(
         # TODO: there may be edge cases where the same normalized field name will transform to two different names
         # in different subtypes.
         for subtype in get_args(stripped_type):
-            data = await _async_transform_recursive(data, annotation=annotation, inner_type=subtype)
+            data = await _async_transform_recursive(
+                data, annotation=annotation, inner_type=subtype
+            )
         return data
 
     if isinstance(data, pydantic.BaseModel):
@@ -344,12 +370,16 @@ async def _async_transform_recursive(
     annotations = get_args(annotated_type)[1:]
     for annotation in annotations:
         if isinstance(annotation, PropertyInfo) and annotation.format is not None:
-            return await _async_format_data(data, annotation.format, annotation.format_template)
+            return await _async_format_data(
+                data, annotation.format, annotation.format_template
+            )
 
     return data
 
 
-async def _async_format_data(data: object, format_: PropertyFormat, format_template: str | None) -> object:
+async def _async_format_data(
+    data: object, format_: PropertyFormat, format_template: str | None
+) -> object:
     if isinstance(data, (date, datetime)):
         if format_ == "iso8601":
             return data.isoformat()
@@ -369,7 +399,9 @@ async def _async_format_data(data: object, format_: PropertyFormat, format_templ
                 binary = binary.encode()
 
         if not isinstance(binary, bytes):
-            raise RuntimeError(f"Could not read bytes from {data}; Received {type(binary)}")
+            raise RuntimeError(
+                f"Could not read bytes from {data}; Received {type(binary)}"
+            )
 
         return base64.b64encode(binary).decode("ascii")
 
@@ -388,5 +420,7 @@ async def _async_transform_typeddict(
             # we do not have a type annotation for this field, leave it as is
             result[key] = value
         else:
-            result[_maybe_transform_key(key, type_)] = await _async_transform_recursive(value, annotation=type_)
+            result[_maybe_transform_key(key, type_)] = await _async_transform_recursive(
+                value, annotation=type_
+            )
     return result

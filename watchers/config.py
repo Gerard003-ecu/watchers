@@ -6,12 +6,16 @@ from pathlib import Path
 # -----------------------------------------------------------
 
 # Ruta al script bash para interactuar con llama.cpp
-LOCAL_SCRIPT_PATH: Path = Path(
-    os.getenv(
-        "LOCAL_SCRIPT_PATH",
-        "/home/gerardo/Documentos/proyectos/mi-proyecto/watchers/llama_run.sh"
+LOCAL_SCRIPT_PATH: Path = (
+    Path(
+        os.getenv(
+            "LOCAL_SCRIPT_PATH",
+            "/home/gerardo/Documentos/proyectos/mi-proyecto/watchers/llama_run.sh",
+        )
     )
-).expanduser().resolve()
+    .expanduser()
+    .resolve()
+)
 
 # Tiempo máximo de espera (en segundos) para la llamada al modelo local.
 try:
@@ -29,6 +33,7 @@ USE_PLACEHOLDER: bool = os.getenv("USE_PLACEHOLDER", "False").strip().lower() ==
 # Detectar si estamos en GitHub Actions
 RUNNING_IN_CI = os.getenv("GITHUB_ACTIONS") == "true"
 
+
 # -----------------------------------------------------------
 # Validación de la configuración
 # -----------------------------------------------------------
@@ -40,14 +45,19 @@ def _validate_config() -> None:
     """
     if not USE_PLACEHOLDER and not RUNNING_IN_CI:
         if not LOCAL_SCRIPT_PATH.is_file():
-            print(f"⚠️ Advertencia: El script {LOCAL_SCRIPT_PATH} no existe. Algunas funciones pueden no estar disponibles.")
+            print(
+                f"⚠️ Advertencia: El script {LOCAL_SCRIPT_PATH} no existe. Algunas funciones pueden no estar disponibles."
+            )
         elif not os.access(LOCAL_SCRIPT_PATH, os.X_OK):
-            print(f"⚠️ Advertencia: El script {LOCAL_SCRIPT_PATH} no tiene permisos de ejecución.")
-    
+            print(
+                f"⚠️ Advertencia: El script {LOCAL_SCRIPT_PATH} no tiene permisos de ejecución."
+            )
+
     if LOCAL_TIMEOUT <= 0:
         raise ValueError(
             f"LOCAL_TIMEOUT debe ser mayor que 0. Valor actual: {LOCAL_TIMEOUT}"
         )
+
 
 # Validar la configuración al importar el módulo
 _validate_config()

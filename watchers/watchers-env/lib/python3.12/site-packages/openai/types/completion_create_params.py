@@ -7,11 +7,17 @@ from typing_extensions import Literal, Required, TypedDict
 
 from .chat.chat_completion_stream_options_param import ChatCompletionStreamOptionsParam
 
-__all__ = ["CompletionCreateParamsBase", "CompletionCreateParamsNonStreaming", "CompletionCreateParamsStreaming"]
+__all__ = [
+    "CompletionCreateParamsBase",
+    "CompletionCreateParamsNonStreaming",
+    "CompletionCreateParamsStreaming",
+]
 
 
 class CompletionCreateParamsBase(TypedDict, total=False):
-    model: Required[Union[str, Literal["gpt-3.5-turbo-instruct", "davinci-002", "babbage-002"]]]
+    model: Required[
+        Union[str, Literal["gpt-3.5-turbo-instruct", "davinci-002", "babbage-002"]]
+    ]
     """ID of the model to use.
 
     You can use the
@@ -21,7 +27,9 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     them.
     """
 
-    prompt: Required[Union[str, List[str], Iterable[int], Iterable[Iterable[int]], None]]
+    prompt: Required[
+        Union[str, List[str], Iterable[int], Iterable[Iterable[int]], None]
+    ]
     """
     The prompt(s) to generate completions for, encoded as a string, array of
     strings, array of tokens, or array of token arrays.
@@ -184,4 +192,6 @@ class CompletionCreateParamsStreaming(CompletionCreateParamsBase):
     """
 
 
-CompletionCreateParams = Union[CompletionCreateParamsNonStreaming, CompletionCreateParamsStreaming]
+CompletionCreateParams = Union[
+    CompletionCreateParamsNonStreaming, CompletionCreateParamsStreaming
+]

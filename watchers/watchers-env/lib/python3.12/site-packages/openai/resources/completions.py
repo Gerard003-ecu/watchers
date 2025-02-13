@@ -23,7 +23,9 @@ from .._base_client import (
     make_request_options,
 )
 from ..types.completion import Completion
-from ..types.chat.chat_completion_stream_options_param import ChatCompletionStreamOptionsParam
+from ..types.chat.chat_completion_stream_options_param import (
+    ChatCompletionStreamOptionsParam,
+)
 
 __all__ = ["Completions", "AsyncCompletions"]
 
@@ -52,7 +54,9 @@ class Completions(SyncAPIResource):
     def create(
         self,
         *,
-        model: Union[str, Literal["gpt-3.5-turbo-instruct", "davinci-002", "babbage-002"]],
+        model: Union[
+            str, Literal["gpt-3.5-turbo-instruct", "davinci-002", "babbage-002"]
+        ],
         prompt: Union[str, List[str], Iterable[int], Iterable[Iterable[int]], None],
         best_of: Optional[int] | NotGiven = NOT_GIVEN,
         echo: Optional[bool] | NotGiven = NOT_GIVEN,
@@ -65,7 +69,9 @@ class Completions(SyncAPIResource):
         seed: Optional[int] | NotGiven = NOT_GIVEN,
         stop: Union[Optional[str], List[str], None] | NotGiven = NOT_GIVEN,
         stream: Optional[Literal[False]] | NotGiven = NOT_GIVEN,
-        stream_options: Optional[ChatCompletionStreamOptionsParam] | NotGiven = NOT_GIVEN,
+        stream_options: (
+            Optional[ChatCompletionStreamOptionsParam] | NotGiven
+        ) = NOT_GIVEN,
         suffix: Optional[str] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         top_p: Optional[float] | NotGiven = NOT_GIVEN,
@@ -205,7 +211,9 @@ class Completions(SyncAPIResource):
     def create(
         self,
         *,
-        model: Union[str, Literal["gpt-3.5-turbo-instruct", "davinci-002", "babbage-002"]],
+        model: Union[
+            str, Literal["gpt-3.5-turbo-instruct", "davinci-002", "babbage-002"]
+        ],
         prompt: Union[str, List[str], Iterable[int], Iterable[Iterable[int]], None],
         stream: Literal[True],
         best_of: Optional[int] | NotGiven = NOT_GIVEN,
@@ -218,7 +226,9 @@ class Completions(SyncAPIResource):
         presence_penalty: Optional[float] | NotGiven = NOT_GIVEN,
         seed: Optional[int] | NotGiven = NOT_GIVEN,
         stop: Union[Optional[str], List[str], None] | NotGiven = NOT_GIVEN,
-        stream_options: Optional[ChatCompletionStreamOptionsParam] | NotGiven = NOT_GIVEN,
+        stream_options: (
+            Optional[ChatCompletionStreamOptionsParam] | NotGiven
+        ) = NOT_GIVEN,
         suffix: Optional[str] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         top_p: Optional[float] | NotGiven = NOT_GIVEN,
@@ -358,7 +368,9 @@ class Completions(SyncAPIResource):
     def create(
         self,
         *,
-        model: Union[str, Literal["gpt-3.5-turbo-instruct", "davinci-002", "babbage-002"]],
+        model: Union[
+            str, Literal["gpt-3.5-turbo-instruct", "davinci-002", "babbage-002"]
+        ],
         prompt: Union[str, List[str], Iterable[int], Iterable[Iterable[int]], None],
         stream: bool,
         best_of: Optional[int] | NotGiven = NOT_GIVEN,
@@ -371,7 +383,9 @@ class Completions(SyncAPIResource):
         presence_penalty: Optional[float] | NotGiven = NOT_GIVEN,
         seed: Optional[int] | NotGiven = NOT_GIVEN,
         stop: Union[Optional[str], List[str], None] | NotGiven = NOT_GIVEN,
-        stream_options: Optional[ChatCompletionStreamOptionsParam] | NotGiven = NOT_GIVEN,
+        stream_options: (
+            Optional[ChatCompletionStreamOptionsParam] | NotGiven
+        ) = NOT_GIVEN,
         suffix: Optional[str] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         top_p: Optional[float] | NotGiven = NOT_GIVEN,
@@ -511,7 +525,9 @@ class Completions(SyncAPIResource):
     def create(
         self,
         *,
-        model: Union[str, Literal["gpt-3.5-turbo-instruct", "davinci-002", "babbage-002"]],
+        model: Union[
+            str, Literal["gpt-3.5-turbo-instruct", "davinci-002", "babbage-002"]
+        ],
         prompt: Union[str, List[str], Iterable[int], Iterable[Iterable[int]], None],
         best_of: Optional[int] | NotGiven = NOT_GIVEN,
         echo: Optional[bool] | NotGiven = NOT_GIVEN,
@@ -524,7 +540,9 @@ class Completions(SyncAPIResource):
         seed: Optional[int] | NotGiven = NOT_GIVEN,
         stop: Union[Optional[str], List[str], None] | NotGiven = NOT_GIVEN,
         stream: Optional[Literal[False]] | Literal[True] | NotGiven = NOT_GIVEN,
-        stream_options: Optional[ChatCompletionStreamOptionsParam] | NotGiven = NOT_GIVEN,
+        stream_options: (
+            Optional[ChatCompletionStreamOptionsParam] | NotGiven
+        ) = NOT_GIVEN,
         suffix: Optional[str] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         top_p: Optional[float] | NotGiven = NOT_GIVEN,
@@ -562,7 +580,10 @@ class Completions(SyncAPIResource):
                 completion_create_params.CompletionCreateParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
             ),
             cast_to=Completion,
             stream=stream or False,
@@ -594,7 +615,9 @@ class AsyncCompletions(AsyncAPIResource):
     async def create(
         self,
         *,
-        model: Union[str, Literal["gpt-3.5-turbo-instruct", "davinci-002", "babbage-002"]],
+        model: Union[
+            str, Literal["gpt-3.5-turbo-instruct", "davinci-002", "babbage-002"]
+        ],
         prompt: Union[str, List[str], Iterable[int], Iterable[Iterable[int]], None],
         best_of: Optional[int] | NotGiven = NOT_GIVEN,
         echo: Optional[bool] | NotGiven = NOT_GIVEN,
@@ -607,7 +630,9 @@ class AsyncCompletions(AsyncAPIResource):
         seed: Optional[int] | NotGiven = NOT_GIVEN,
         stop: Union[Optional[str], List[str], None] | NotGiven = NOT_GIVEN,
         stream: Optional[Literal[False]] | NotGiven = NOT_GIVEN,
-        stream_options: Optional[ChatCompletionStreamOptionsParam] | NotGiven = NOT_GIVEN,
+        stream_options: (
+            Optional[ChatCompletionStreamOptionsParam] | NotGiven
+        ) = NOT_GIVEN,
         suffix: Optional[str] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         top_p: Optional[float] | NotGiven = NOT_GIVEN,
@@ -747,7 +772,9 @@ class AsyncCompletions(AsyncAPIResource):
     async def create(
         self,
         *,
-        model: Union[str, Literal["gpt-3.5-turbo-instruct", "davinci-002", "babbage-002"]],
+        model: Union[
+            str, Literal["gpt-3.5-turbo-instruct", "davinci-002", "babbage-002"]
+        ],
         prompt: Union[str, List[str], Iterable[int], Iterable[Iterable[int]], None],
         stream: Literal[True],
         best_of: Optional[int] | NotGiven = NOT_GIVEN,
@@ -760,7 +787,9 @@ class AsyncCompletions(AsyncAPIResource):
         presence_penalty: Optional[float] | NotGiven = NOT_GIVEN,
         seed: Optional[int] | NotGiven = NOT_GIVEN,
         stop: Union[Optional[str], List[str], None] | NotGiven = NOT_GIVEN,
-        stream_options: Optional[ChatCompletionStreamOptionsParam] | NotGiven = NOT_GIVEN,
+        stream_options: (
+            Optional[ChatCompletionStreamOptionsParam] | NotGiven
+        ) = NOT_GIVEN,
         suffix: Optional[str] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         top_p: Optional[float] | NotGiven = NOT_GIVEN,
@@ -900,7 +929,9 @@ class AsyncCompletions(AsyncAPIResource):
     async def create(
         self,
         *,
-        model: Union[str, Literal["gpt-3.5-turbo-instruct", "davinci-002", "babbage-002"]],
+        model: Union[
+            str, Literal["gpt-3.5-turbo-instruct", "davinci-002", "babbage-002"]
+        ],
         prompt: Union[str, List[str], Iterable[int], Iterable[Iterable[int]], None],
         stream: bool,
         best_of: Optional[int] | NotGiven = NOT_GIVEN,
@@ -913,7 +944,9 @@ class AsyncCompletions(AsyncAPIResource):
         presence_penalty: Optional[float] | NotGiven = NOT_GIVEN,
         seed: Optional[int] | NotGiven = NOT_GIVEN,
         stop: Union[Optional[str], List[str], None] | NotGiven = NOT_GIVEN,
-        stream_options: Optional[ChatCompletionStreamOptionsParam] | NotGiven = NOT_GIVEN,
+        stream_options: (
+            Optional[ChatCompletionStreamOptionsParam] | NotGiven
+        ) = NOT_GIVEN,
         suffix: Optional[str] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         top_p: Optional[float] | NotGiven = NOT_GIVEN,
@@ -1053,7 +1086,9 @@ class AsyncCompletions(AsyncAPIResource):
     async def create(
         self,
         *,
-        model: Union[str, Literal["gpt-3.5-turbo-instruct", "davinci-002", "babbage-002"]],
+        model: Union[
+            str, Literal["gpt-3.5-turbo-instruct", "davinci-002", "babbage-002"]
+        ],
         prompt: Union[str, List[str], Iterable[int], Iterable[Iterable[int]], None],
         best_of: Optional[int] | NotGiven = NOT_GIVEN,
         echo: Optional[bool] | NotGiven = NOT_GIVEN,
@@ -1066,7 +1101,9 @@ class AsyncCompletions(AsyncAPIResource):
         seed: Optional[int] | NotGiven = NOT_GIVEN,
         stop: Union[Optional[str], List[str], None] | NotGiven = NOT_GIVEN,
         stream: Optional[Literal[False]] | Literal[True] | NotGiven = NOT_GIVEN,
-        stream_options: Optional[ChatCompletionStreamOptionsParam] | NotGiven = NOT_GIVEN,
+        stream_options: (
+            Optional[ChatCompletionStreamOptionsParam] | NotGiven
+        ) = NOT_GIVEN,
         suffix: Optional[str] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         top_p: Optional[float] | NotGiven = NOT_GIVEN,
@@ -1104,7 +1141,10 @@ class AsyncCompletions(AsyncAPIResource):
                 completion_create_params.CompletionCreateParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
             ),
             cast_to=Completion,
             stream=stream or False,

@@ -19,6 +19,7 @@ PLACEHOLDER_RULES = {
     "python": "Revisa PEP-8 y posibles anti-patrones.",
 }
 
+
 def get_suggestions_local(code_snippet: str) -> str:
     """
     Obtiene sugerencias de mejora para el código proporcionado, usando un LLM local
@@ -33,6 +34,7 @@ def get_suggestions_local(code_snippet: str) -> str:
 
     return _invoke_local_llm(code_snippet)
 
+
 def _generate_placeholder_suggestion(code: str) -> str:
     """
     Genera sugerencias simuladas basadas en patrones en el código.
@@ -42,6 +44,7 @@ def _generate_placeholder_suggestion(code: str) -> str:
         if pattern in code_lower:
             return f"{PLACEHOLDER_PREFIX}{suggestion}"
     return f"{PLACEHOLDER_PREFIX}{DEFAULT_SUGGESTION}"
+
 
 def _invoke_local_llm(code: str) -> str:
     """
@@ -56,26 +59,33 @@ def _invoke_local_llm(code: str) -> str:
             check=True,
             capture_output=True,
             text=True,
-            encoding='utf-8',
-            errors='replace',
-            timeout=LOCAL_TIMEOUT
+            encoding="utf-8",
+            errors="replace",
+            timeout=LOCAL_TIMEOUT,
         )
         return _process_llm_output(result.stdout)
-        
+
     except subprocess.TimeoutExpired as e:
         logger.error("Tiempo de espera agotado para LLM local")
-        send_error("LOCAL_LLM_TIMEOUT", f"Timeout de {LOCAL_TIMEOUT}s al invocar LLM local: {e}")
+        send_error(
+            "LOCAL_LLM_TIMEOUT",
+            f"Timeout de {LOCAL_TIMEOUT}s al invocar LLM local: {e}",
+        )
         return f"{ERROR_PREFIX}Timeout ({LOCAL_TIMEOUT}s)"
-        
+
     except subprocess.CalledProcessError as e:
         logger.error("Error en ejecución de LLM: %s", e.stderr)
         send_error("LOCAL_LLM_ERROR", f"Error en ejecución de LLM local: {e.stderr}")
         return f"{ERROR_PREFIX}{e.stderr.strip() or 'Error desconocido'}"
-        
+
     except Exception as e:
         logger.exception("Error inesperado al invocar LLM local")
-        send_error("LOCAL_LLM_EXCEPTION", f"Excepción inesperada al invocar LLM local: {str(e)}")
+        send_error(
+            "LOCAL_LLM_EXCEPTION",
+            f"Excepción inesperada al invocar LLM local: {str(e)}",
+        )
         return f"{ERROR_PREFIX}{str(e)}"
+
 
 def _process_llm_output(raw_output: str) -> str:
     """
