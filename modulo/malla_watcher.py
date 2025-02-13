@@ -53,7 +53,7 @@ class Cell:
 # Clases PhosWave y Electron
 # -----------------------------------------------------------
 class PhosWave:
-    def __init__(self, coef_transmision=0.6, coef_reflexion=0.4, lambda_foton=600):
+    def __init__(self, coef_transmision=0.6, coef_reflexion=0.4, lambda_foton=600, tipo_onda="senoidal"):
         self.T = coef_transmision
         self.R = coef_reflexion
         self.lambda_foton = lambda_foton
