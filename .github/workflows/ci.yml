@@ -61,4 +61,4 @@ jobs:
         run: flake8 watchers/watchers_wave/ || true
 
       - name: 🎨 Formatear código con Black
-        run: black --check watchers/ watchers_wave/ test/ watcher_focus/  --exclude 'watchers-env/'
+        run: black --check watchers/ watchers_wave/ test/ watcher_focus/  --exclude '/watchers-env/'
